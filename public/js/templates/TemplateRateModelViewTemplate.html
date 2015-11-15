@@ -1,0 +1,9 @@
+<% var isShipmentBasedChecked = "checked"; %>
+<% var isPriceBasedChecked = ""; %>
+<% if(value === "price_based"){ %>
+<%     isShipmentBasedChecked = ""; %>
+<%     isPriceBasedChecked = "checked"; %>
+<% }else{ %>
+<% } %>
+<input type="radio" name="rateModel" value="shipment_based" <%=isShipmentBasedChecked%>></input><span>Per Item/Weight-Based</span>
+<input type="radio" name="rateModel" value="price_based" <%=isPriceBasedChecked%>></input><span>Price Banded</span>

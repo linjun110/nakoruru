@@ -1,0 +1,13 @@
+.templateName, .templateRateModel, .primeSetting, .serviceTypeGroups{
+	margin-top:20px;
+	margin-bottom:20px;
+}
+
+.serviceTypeView, .serviceTypeGroupView, .configRuleView{
+	padding: 10px;
+}
+
+.serviceTypeView{
+	margin-top: 5px;
+	margin-bottom: 5px;
+}

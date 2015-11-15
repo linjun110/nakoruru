@@ -1,0 +1,18 @@
+<td class="regionsCol"><span><%=regions%></span><a class="editConfigRuleRegion">Edit</a></td>
+<td class="addressTypeCol">
+	<% _.each(addressTypeOptions, function(option){%>
+	<% 	var isChecked = option.value===addressType? "checked" : ""; %>
+		<input type="checkbox" class="addressType" value=<%=option.value%>><%=option.text%></input><br>
+	<%});%>
+</td>
+<td class="shippingTimeCol">
+	<select class="shippingTime" value=<%=shippingTime%>>
+		<% _.each(shippingTimeOptions, function(option){%>
+		<% 	var isSelected = option.value===shippingTime? "selected" : ""; %>
+			<option value=<%=option.value%> <%=isSelected%>><%=option.text%></option>
+		<%});%>
+	</select>
+</td>
+<td class="unitPriceCol"><input class="unitPrice" value=<%=unitPrice%>></input><span><%=unitPricePromptMsg%></span></td>
+<td class="pricePerOrderCol"><input class="pricePerOrder" value=<%=pricePerOrder%>></input></td>
+<td class="deleteCol"><a class="delete">Delete</a></td>
