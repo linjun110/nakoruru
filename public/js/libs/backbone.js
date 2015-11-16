@@ -186,8 +186,60 @@
   };
 
   // Guard the `listening` argument from the public API.
+
+  /*
+  initial values:
+  b._listenId = 'l2',
+  listening = {
+    obj: b,
+    objId: 'l2',
+    id: 'l1',
+    listeningTo: a._listeningTo,
+    count: 0
+  },
+
+  context = a;
+
+  a._listeningTo = {
+    'l2': {
+      obj: b,
+      objId: 'l2',
+      id: 'l1',
+      listeningTo: a._listeningTo,
+      count: 0
+    }
+  }
+
+  final values:
+  b._events = {
+    'eventName': [{
+      callback: cb,
+      context: a,
+      ctx: a || b,
+      listening: {
+        obj: b,
+        objId: 'l2',
+        id: 'l1',
+        listeningTo: a._listeningTo,
+        count: 0
+      }
+    }]
+  }
+
+  b._listeners = {
+    'l1': {
+      obj: b,
+      objId: 'l2',
+      id: 'l1',
+      listeningTo: a._listeningTo,
+      count: 0
+    }
+  }
+
+  */
   var internalOn = function(obj, name, callback, context, listening) {
-    //显然要给obj._events增加一个item
+    //主角：obj
+    // obj监听的事件都记录在 _events 里
     obj._events = eventsApi(onApi, obj._events || {}, name, callback, {
         context: context,
         ctx: obj,
@@ -205,6 +257,22 @@
   // Inversion-of-control versions of `on`. Tell *this* object to listen to
   // an event in another object... keeping track of what it's listening to
   // for easier unbinding later.
+
+  /*
+  a._listenId = 'l1',
+  b._listenId = 'l2',
+  a.listenTo(b, "eventName", cb)
+
+  a._listeningTo = {
+    'l2': {
+      obj: b,
+      objId: 'l2',
+      id: 'l1',
+      listeningTo: a._listeningTo,
+      count: 0
+    }
+  }
+  */
   Events.listenTo =  function(obj, name, callback) {
     if (!obj) return this;
     var id = obj._listenId || (obj._listenId = _.uniqueId('l'));
@@ -224,6 +292,26 @@
   };
 
   // The reducing API that adds a callback to the `events` object.
+  /*
+  initial values:
+  events = {};
+
+  final values:
+  events = {
+    'eventName': [{
+      callback: cb,
+      context: a,
+      ctx: a || b,
+      listening: {
+        obj: b,
+        objId: 'l2',
+        id: 'l1',
+        listeningTo: a._listeningTo,
+        count: 0
+      }
+    }]
+  }
+  */
   var onApi = function(events, name, callback, options) {
     if (callback) {
       var handlers = events[name] || (events[name] = []);
@@ -239,31 +327,94 @@
   // callbacks with that function. If `callback` is null, removes all
   // callbacks for the event. If `name` is null, removes all bound
   // callbacks for all events.
+  /*
+  initial values:
+  events = {
+    'eventName': [{
+      callback: cb,
+      context: a,
+      ctx: a || b,
+      listening: {
+        obj: b,
+        objId: 'l2',
+        id: 'l1',
+        listeningTo: a._listeningTo,
+        count: 0
+      }
+    }]
+  }
+  */
   Events.off =  function(name, callback, context) {
     if (!this._events) return this;
     this._events = eventsApi(offApi, this._events, name, callback, {
         context: context,
         listeners: this._listeners
+        /*
+        this._listeners = {
+          'l1': {
+            obj: b,
+            objId: 'l2',
+            id: 'l1',
+            listeningTo: a._listeningTo,
+            count: 0
+          }
+        }
+        */
     });
+    /*
+    context = a
+    listeners = 
+    */
     return this;
   };
 
   // Tell this object to stop listening to either specific events ... or
   // to every object it's currently listening to.
+  /*
+  initial values:
+  a._listenId = 'l1',
+  b._listenId = 'l2',
+  a.listenTo(b, "eventName", cb)
+
+  a._listeningTo = {
+    'l2': {
+      obj: b,
+      objId: 'l2',
+      id: 'l1',
+      listeningTo: a._listeningTo,
+      count: 0
+    }
+  }
+
+  final values:
+  a._listeningTo = {
+  }
+  */
   Events.stopListening =  function(obj, name, callback) {
     var listeningTo = this._listeningTo;
     if (!listeningTo) return this;
 
     var ids = obj ? [obj._listenId] : _.keys(listeningTo);
+    // ids = ['l2', 'l3', ...] // all this id that a listening to
 
     for (var i = 0; i < ids.length; i++) {
       var listening = listeningTo[ids[i]];
+      /* listening = {
+        obj: b,
+        objId: 'l2',
+        id: 'l1',
+        listeningTo: a._listeningTo,
+        count: 0
+      }
+      */
 
       // If listening doesn't exist, this object is not currently
       // listening to obj. Break out early.
       if (!listening) break;
 
       listening.obj.off(name, callback, this);
+      /*
+      */
     }
     if (_.isEmpty(listeningTo)) this._listeningTo = void 0;
 
@@ -422,7 +573,7 @@
     if (options.collection) this.collection = options.collection;
     if (options.parse) attrs = this.parse(attrs, options) || {};
     attrs = _.defaults({}, attrs, _.result(this, 'defaults'));
-    this.set(attrs, options);
+    this.set(attrs, options); // 奇怪了
     this.changed = {};
     this.initialize.apply(this, arguments);
   };
@@ -525,14 +676,14 @@
         } else {
           delete changed[attr];
         }
-        unset ? delete current[attr] : current[attr] = val;
+        unset ? delete current[attr] : current[attr] = val; // unset的作用
       }
 
       // Update the `id`.
       if (this.idAttribute in attrs) this.id = this.get(this.idAttribute);
 
       // Trigger all relevant attribute changes.
-      if (!silent) {
+      if (!silent) { //TIP: 可以用 silent令其不触发 change事件
         if (changes.length) this._pending = options;
         for (var i = 0; i < changes.length; i++) {
           this.trigger('change:' + changes[i], this, current[changes[i]], options);
@@ -1109,7 +1260,7 @@
       }
       options = options ? _.clone(options) : {};
       options.collection = this;
-      var model = new this.model(attrs, options);
+      var model = new this.model(attrs, options); // here, parse to model
       if (!model.validationError) return model;
       this.trigger('invalid', this, model.validationError, options);
       return false;
@@ -1870,6 +2021,8 @@
   // Helper function to correctly set up the prototype chain for subclasses.
   // Similar to `goog.inherits`, but uses a hash of prototype properties and
   // class properties to be extended.
+
+  // staticProps 赋予 子类 child (function)
   var extend = function(protoProps, staticProps) {
     var parent = this;
     var child;
@@ -1881,10 +2034,12 @@
       child = protoProps.constructor;
     } else {
       child = function(){ return parent.apply(this, arguments); };
+      //这样 new 出来的对象 就可以继承 parent 里 的 属性
     }
 
     // Add static properties to the constructor function, if supplied.
-    _.extend(child, parent, staticProps);
+    _.extend(child, parent, staticProps); 
+    // 把 parent (function) 里的属性 放到 child (function) 里
 
     // Set the prototype chain to inherit from `parent`, without calling
     // `parent`'s constructor function and add the prototype properties.

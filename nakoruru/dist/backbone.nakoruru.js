@@ -7,6 +7,7 @@
 //
 // http://mocklinjun.com
 
+
 var Nakoruru = (function(global, Backbone, _){
   //"use strict";
   var Nakoruru = {};
@@ -18,16 +19,17 @@ var Nakoruru = (function(global, Backbone, _){
   return Nakoruru;
 })(this, Backbone, _);
 // defined by me
-  var nako_bindEntityEvents = function(model, eventsMap, context){
-    _.each(eventsMap, function(cbName, event){
-      this.listenTo(model, event, this[cbName], this);
-    }, context);
-  };
+var nako_bindEntityEvents = function(model, eventsMap, context){
+	_.each(eventsMap, function(cbName, event){
+	  this.listenTo(model, event, this[cbName], this);
+	}, context);
+};
 
-  var nako_unbindEntityEvents = function(model){
-      // TODO: study
-      model.off();
-  };
+var nako_unbindEntityEvents = function(model){
+	// TODO: not quite sure if it's correct
+	model.off();
+};
+
  (function(Nakoruru) {
     'use strict';
   
@@ -117,53 +119,59 @@ var Nakoruru = (function(global, Backbone, _){
       return Nakoruru.unbindEntityEvents(this, entity, bindings);
     };
   })(Nakoruru);
+
 // Object
-  // ------
-  
-  // A Base Class that other Classes should descend from.
-  // Object borrows many conventions and utilities from Backbone.
-  // Borrow from marinette.
-  Nakoruru.Object = function(options) {
-    this.options = _.extend({}, _.result(this, 'options'), options);
-  
-    this.initialize.apply(this, arguments);
-  };
-  
-  Nakoruru.Object.extend = Nakoruru.extend;
-  
-  // Object Methods
-  // --------------
-  
-  // Ensure it can trigger events with Backbone.Events
-  _.extend(Nakoruru.Object.prototype, Backbone.Events, {
-  
-    //this is a noop method intended to be overridden by classes that extend from this base
-    initialize: function() {},
-  
-    destroy: function() {
-      this.triggerMethod('before:destroy');
-      this.triggerMethod('destroy');
-      this.stopListening();
-  
-      return this;
-    },
-  
-    // Import the `triggerMethod` to trigger events with corresponding
-    // methods if the method exists
-    triggerMethod: Nakoruru.triggerMethod,
-  
-    // A handy way to merge options onto the instance
-    mergeOptions: Nakoruru.mergeOptions,
-  
-    // Proxy `getOption` to enable getting options from this or this.options by name.
-    getOption: Nakoruru.proxyGetOption,
-  
-    // Proxy `bindEntityEvents` to enable binding view's events from another entity.
-    bindEntityEvents: Nakoruru.proxyBindEntityEvents,
-  
-    // Proxy `unbindEntityEvents` to enable unbinding view's events from another entity.
-    unbindEntityEvents: Nakoruru.proxyUnbindEntityEvents
-  });
+// ------
+
+// A Base Class that other Classes should descend from.
+// Object borrows many conventions and utilities from Backbone.
+// Borrow from marinette.
+Nakoruru.Object = function(options) {
+  this.options = _.extend({}, _.result(this, 'options'), options);
+
+  this.initialize.apply(this, arguments);
+};
+
+Nakoruru.Object.extend = Nakoruru.extend;
+
+// Object Methods
+// --------------
+
+// Ensure it can trigger events with Backbone.Events
+_.extend(Nakoruru.Object.prototype, Backbone.Events, {
+
+  //this is a noop method intended to be overridden by classes that extend from this base
+  initialize: function() {},
+
+  destroy: function() {
+    this.triggerMethod('before:destroy');
+    this.triggerMethod('destroy');
+    this.stopListening();
+
+    return this;
+  },
+
+  // Import the `triggerMethod` to trigger events with corresponding
+  // methods if the method exists
+  triggerMethod: Nakoruru.triggerMethod,
+
+  // A handy way to merge options onto the instance
+  mergeOptions: Nakoruru.mergeOptions,
+
+  // Proxy `getOption` to enable getting options from this or this.options by name.
+  getOption: Nakoruru.proxyGetOption,
+
+  // Proxy `bindEntityEvents` to enable binding view's events from another entity.
+  bindEntityEvents: Nakoruru.proxyBindEntityEvents,
+
+  // Proxy `unbindEntityEvents` to enable unbinding view's events from another entity.
+  unbindEntityEvents: Nakoruru.proxyUnbindEntityEvents
+});
+
+/* Respositility.
+  1. parse to subModels.
+  2. listen to subModels.
+*/
 Nakoruru.Model = Backbone.Model.extend({
   initialize: function(){
     this.parse();
@@ -179,10 +187,12 @@ Nakoruru.Model = Backbone.Model.extend({
         sub.modelParent = this;
         this.set( key, sub );
 
+        // listen to sub models
         nako_bindEntityEvents(sub, subModelEvents, this);
       }
     }, this);
   },
+
   _clonePrimaryAttrs: function(){
     var data = {};
     _.each(this.attributes, function(val, key){
@@ -192,6 +202,7 @@ Nakoruru.Model = Backbone.Model.extend({
     });
     return data;
   },
+
   // api to set model
   _set: function(key, value){
 
@@ -220,47 +231,65 @@ Nakoruru.Model = Backbone.Model.extend({
     return data;
   }
 });
+
 Nakoruru.Collection = Backbone.Collection.extend({
   initialize: function(){
     this.setUpListening();
   },
   setUpListening: function(){
     var _this = this;
+
+    // the reason use setTimeout is that in backbone, 
+    //the initialize is called before all models are added to this.models
     setTimeout(function(){
+      // In backbone, collection just listen to model remove & add events, then trigger a 'update'
+      // Here we also listen to model change event
       _.each(_this.models, function(model){
         this.listenTo(model, "change", function(){
           this.trigger("update");
         }, this);
       }, _this);
     });
+  },
+  addChild: function(){
+    var childModelClass = this.model || Backbone.Model;
+    var childToAdded = new childModelClass();
+    this.add(childToAdded);
   }
 });
+
+ /* Resposibility:
+  1. as attr of Region, manage and render each part.
+ */
  Nakoruru.Region = Nakoruru.Object.extend({
     constructor: function(options) {
       options = options || {};
       _.extend(this, options);
-
       this.$el = this.owner.$el.find(this.selector);
-
-      //Backbone.View.call(this, options);
     },
     show: function(view){
       var _this = this;
-      //this._renderView(view);
-      view.render();
-      this._attachHtml(view);
-      view._parent = this;
 
-      // Time to trigger render event
+      view._parentView = this.owner;
+      view._parentRegion = this;
+
+      view.render();
+
+      this._attachHtml(view);
+
       view.trigger("show");
     },
 
-    // helpers
     _attachHtml: function(view) {
       this.$el.empty();
       this.$el.append(view.$el);
     },
   });
+
+/* Responsibility:
+  1. Monitor DOM event -> set Model
+  2. Monitor Model -> render
+*/
 Nakoruru.View = Backbone.View.extend({
     constructor: function(options) {
       options = options || {};
@@ -278,6 +307,7 @@ Nakoruru.View = Backbone.View.extend({
 
       this.on("show", this._onShow);
 
+      // listen to model
       if(_.isUndefined(this.model) || this.model instanceof Backbone.Model){
         if(this.modelEvents){
           nako_bindEntityEvents(this.model, this.modelEvents, this);
@@ -325,13 +355,12 @@ Nakoruru.View = Backbone.View.extend({
       // clean first
 
       _.each(this._childViews, function(childView){
-        childView.stopListening(childView.model);
+        childView.remove();
       }, this);
 
-      this.$el.empty();
-
-
+      // need to manage all child views
       this._childViews = this._childViews || [];
+
       if(this.childView){
         _.each(this.model.models, function(model){
           // new
@@ -350,8 +379,8 @@ Nakoruru.View = Backbone.View.extend({
     },
 
     _renderModel: function(){
-      //TODO: clean first
-
+      this.undelegateEvents();
+      
       // render
       if(!this.isRootView){
         this.el = this.template? this.template( this.model? this.model.toJSON():{} ) : "";
@@ -362,6 +391,8 @@ Nakoruru.View = Backbone.View.extend({
       }
 
       this._initializeRegions();
+
+      this.delegateEvents();
       return this;
     }
   });

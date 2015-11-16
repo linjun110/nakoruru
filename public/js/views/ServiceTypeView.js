@@ -5,12 +5,6 @@ define(['utils', 'text!templates/ServiceTypeViewTemplate.html', 'views/ServiceTy
 			serviceTypeInfo: ".serviceTypeInfo",
 			configRules: ".configRules"
 		},
-		events: {
-			"click .checker": "checkerClickedHandler"
-		},
-		checkerClickedHandler: function(e){
-			this.model._set("isRestricted", !e.target.checked);
-		},
 		onShow: function(){
 
 			this.views.serviceTypeInfo = new ServiceTypeInfoView({model: this.model.get("info")});

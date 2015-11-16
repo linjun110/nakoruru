@@ -1,3 +1,8 @@
+
+/* Responsibility:
+  1. Monitor DOM event -> set Model
+  2. Monitor Model -> render
+*/
 Nakoruru.View = Backbone.View.extend({
     constructor: function(options) {
       options = options || {};
@@ -15,6 +20,7 @@ Nakoruru.View = Backbone.View.extend({
 
       this.on("show", this._onShow);
 
+      // listen to model
       if(_.isUndefined(this.model) || this.model instanceof Backbone.Model){
         if(this.modelEvents){
           nako_bindEntityEvents(this.model, this.modelEvents, this);
@@ -62,13 +68,12 @@ Nakoruru.View = Backbone.View.extend({
       // clean first
 
       _.each(this._childViews, function(childView){
-        childView.stopListening(childView.model);
+        childView.remove();
       }, this);
 
-      this.$el.empty();
-
-
+      // need to manage all child views
       this._childViews = this._childViews || [];
+
       if(this.childView){
         _.each(this.model.models, function(model){
           // new
@@ -87,8 +92,8 @@ Nakoruru.View = Backbone.View.extend({
     },
 
     _renderModel: function(){
-      //TODO: clean first
-
+      this.undelegateEvents();
+      
       // render
       if(!this.isRootView){
         this.el = this.template? this.template( this.model? this.model.toJSON():{} ) : "";
@@ -99,6 +104,8 @@ Nakoruru.View = Backbone.View.extend({
       }
 
       this._initializeRegions();
+
+      this.delegateEvents();
       return this;
     }
   });

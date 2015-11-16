@@ -1,3 +1,8 @@
+
+/* Respositility.
+  1. parse to subModels.
+  2. listen to subModels.
+*/
 Nakoruru.Model = Backbone.Model.extend({
   initialize: function(){
     this.parse();
@@ -13,10 +18,12 @@ Nakoruru.Model = Backbone.Model.extend({
         sub.modelParent = this;
         this.set( key, sub );
 
+        // listen to sub models
         nako_bindEntityEvents(sub, subModelEvents, this);
       }
     }, this);
   },
+
   _clonePrimaryAttrs: function(){
     var data = {};
     _.each(this.attributes, function(val, key){
@@ -26,6 +33,7 @@ Nakoruru.Model = Backbone.Model.extend({
     });
     return data;
   },
+
   // api to set model
   _set: function(key, value){
 

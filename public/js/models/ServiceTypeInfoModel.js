@@ -3,7 +3,8 @@ define(['utils'],function(utils){
 		defaults: {
 			"name":  "",
 			"isRestricted": false,
-			"errorOrWarning": ""
+			"errorOrWarning": "",
+			"addNewButtonClicked": false
 		},
 		recalc: function(data){
 			data["errorOrWarning"] = "";

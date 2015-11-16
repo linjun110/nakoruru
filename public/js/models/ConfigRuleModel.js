@@ -1,6 +1,5 @@
 define(['utils'],function(utils){
 	var model = Backbone.Nakoruru.Model.extend({
-		// TODO: add event listen
 		defaults: {
 			"regions":  "",
 			"addressType": "street",

@@ -6,12 +6,18 @@ define(['utils', 'views/ConfigRuleView'],function(utils, childView){
 
 		events:{
 		},
+		// view listen to model(Collection)
 		collectionEvents: {
 	      "remove": "collectionModelDestroyed",
+	      "add": "collectionModelAdded",
 	      "update": "collectionUpdated"
 	    },
 	    collectionModelDestroyed: function(){
 	    	console.log("ConfigRuleCollectionView detect model destroy");
+	    	this.render();
+	    },
+	    collectionModelAdded: function(){
+	    	console.log("ConfigRuleCollectionView detect model add");
 	    	this.render();
 	    },
 	    collectionUpdated: function(){
