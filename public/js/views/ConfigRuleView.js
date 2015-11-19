@@ -22,7 +22,7 @@ define(['utils', 'text!templates/ConfigRuleViewTemplate.html'],function(utils, T
 		},
 		unitPriceChangeHandler: function (e) {
 			this.model._set("unitPrice", e.currentTarget.value);
-			this.render();
+			this.render(); // TODO: move to base class?
 		}
 	});
 	return view;

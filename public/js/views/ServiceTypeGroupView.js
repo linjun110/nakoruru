@@ -11,7 +11,7 @@ define(['utils', 'text!templates/ServiceTypeGroupViewTemplate.html', 'views/Serv
 			serviceTypes: ".serviceTypes"
 		},
 		onShow: function () {
-
+			// refactor
 			this.views.serviceTypeGroupInfo = new ServiceTypeGroupInfoView({model: this.model.get("info")});
 			this.getRegion("serviceTypeGroupInfo").show(this.views.serviceTypeGroupInfo);
 

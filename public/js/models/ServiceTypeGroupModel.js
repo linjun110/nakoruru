@@ -7,6 +7,8 @@ define(['utils', 'models/ServiceTypeCollection', 'models/ServiceTypeGroupInfoMod
 					"change" : "infoChanged"
 				}
 			},
+			// option1: automatically send event to parrent
+			// option2: make decition then send
 			"configRuleGroups": {
 				"type": ServiceTypeCollection,
 				"events": {
@@ -14,6 +16,14 @@ define(['utils', 'models/ServiceTypeCollection', 'models/ServiceTypeGroupInfoMod
 				}
 			},
 		},
+
+		// Think more about  it, move events to other attribute
+		/*
+		subModelEvent: {
+			"info:change:attr1": "infoChanged"
+		}
+		*/
+
 		defaults: {
 		},
 		isValidate: function(){
